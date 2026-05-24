@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEES Tactical Navigator - Persona 3 Portable Tracker</title>
+    <!-- Tailwind CSS for modern layout/styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for iconic symbols -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050b14;
+            color: #e2e8f0;
+        }
+        /* Custom scrollbar for low-performance/clean design */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b1524;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #0ea5e9;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38bdf8;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 overflow-x-hidden">
+
+    
+    <!-- Top Decorative Status Bar -->
+    <div class="w-full h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 shadow-[0_2px_10px_rgba(6,182,212,0.5)]"></div>
+
+    <header class="bg-[#0b1524]/90 backdrop-blur border-b border-cyan-950/40 py-4 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-cyan-600 to-blue-500 text-white p-2.5 rounded-xl shadow-lg shadow-cyan-500/10">
+                    <i class="fa-solid fa-compass-drafting text-xl animate-spin-slow"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-white via-cyan-200 to-cyan-400 bg-clip-text text-transparent">
+                        S.E.E.S. TACTICAL TRACKER
+                    </h1>
+                    <p class="text-xs text-cyan-400 font-medium tracking-widest uppercase">Persona 3 Portable Navigation Assist</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <!-- Sync status indication -->
+                <span id="save-indicator" class="text-xs font-semibold bg-emerald-950 text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-800/50 flex items-center gap-2 transition-all duration-300 opacity-100">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    Auto-Saved Local
+                </span>
+                
+                <button onclick="resetTrackerData()" class="text-xs text-red-400 hover:text-red-300 font-medium border border-red-950 bg-red-950/10 hover:bg-red-950/30 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Layout -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- Left Panel (Time & Tartarus Stats - Persistent Tracker Panel) -->
+            <div class="lg:col-span-5 space-y-6">
+
+                <!-- Calendar and Moon Widget -->
+                <div class="bg-[#0a1322] border border-cyan-950/60 rounded-2xl p-5 shadow-[0_4px_25px_rgba(0,0,0,0.4)] relative overflow-hidden">
+                    <div class="absolute -right-12 -top-12 w-32 h-32 bg-cyan-500/5 rounded-full blur-3xl"></div>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-sm font-bold text-cyan-400 tracking-wider uppercase flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-days"></i> Game Calendar
+                        </h2>
+                        <span class="text-xs text-slate-400 font-mono">P3P Campaign Cycle</span>
+                    </div>
+
+                    <!-- Date Selection Form -->
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Month</label>
+                            <select id="game-month" onchange="onDateChanged()" class="w-full bg-[#101d33] border border-cyan-900/40 text-cyan-100 rounded-xl px-3 py-2.5 text-sm focus:border-cyan-400 focus:outline-none transition-all cursor-pointer font-semibold">
+                                <option value="4">April (Start)</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                                <option value="1">January (End)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Day</label>
+                            <select id="game-day" onchange="onDateChanged()" class="w-full bg-[#101d33] border border-cyan-900/40 text-cyan-100 rounded-xl px-3 py-2.5 text-sm focus:border-cyan-400 focus:outline-none transition-all cursor-pointer font-mono font-semibold">
+                                <!-- Generated Dynamically -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Smart Fast-Forward Buttons -->
+                    <div class="flex gap-2 mb-5">
+                        <button onclick="adjustDays(-1)" class="flex-1 bg-[#101d33] hover:bg-cyan-950/40 border border-cyan-900/30 text-slate-300 text-xs py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 active:scale-95">
+                            <i class="fa-solid fa-chevron-left text-[10px]"></i> Prev Day
+                        </button>
+                        <button onclick="adjustDays(1)" class="flex-1 bg-cyan-950/50 hover:bg-cyan-900/60 border border-cyan-500/30 text-cyan-300 text-xs py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 active:scale-95">
+                            Next Day <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </button>
+                    </div>
+
+                    <!-- Dynamic Moon Phase and Warning Info Box -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0d1c32] p-4 rounded-xl border border-cyan-900/20">
+                        <div class="flex items-center gap-3">
+                            <div id="moon-icon" class="text-4xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">🌕</div>
+                            <div>
+                                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Moon Phase</div>
+                                <div id="moon-text" class="text-sm font-bold text-slate-200">Full Moon</div>
+                            </div>
+                        </div>
+                        <div class="border-t md:border-t-0 md:border-l border-cyan-900/30 pt-3 md:pt-0 md:pl-4 flex flex-col justify-center">
+                            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Operation Warning</div>
+                            <div id="countdown-text" class="text-sm font-extrabold text-cyan-300 mt-0.5">Calculating...</div>
+                        </div>
+                    </div>
+
+                    <!-- Today's Live Quiz Notification (If any) -->
+                    <div id="today-quiz-card" class="mt-4 hidden p-3 bg-cyan-950/20 border border-cyan-400/20 rounded-xl flex items-start gap-3">
+                        <span class="text-lg">🏫</span>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-xs font-bold text-cyan-300">Today's School Classroom Answer</div>
+                            <p id="today-quiz-q" class="text-xs text-slate-400 truncate mt-0.5"></p>
+                            <p id="today-quiz-a" class="text-xs text-emerald-400 font-extrabold mt-0.5"></p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Tartarus Performance & Floor Planner -->
+                <div class="bg-[#0a1322] border border-cyan-950/60 rounded-2xl p-5 shadow-[0_4px_25px_rgba(0,0,0,0.4)] space-y-5">
+                    
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-sm font-bold text-cyan-400 tracking-wider uppercase flex items-center gap-2">
+                            <i class="fa-solid fa-tower-observation animate-bounce-slow"></i> Tartarus Analytics
+                        </h2>
+                        <span class="text-[10px] bg-slate-900 text-slate-400 border border-slate-800 px-2 py-0.5 rounded font-mono">System Pacing</span>
+                    </div>
+
+                    <!-- Parameters Input Row -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Your Floor</label>
+                            <div class="relative">
+                                <span class="absolute left-3.5 top-2.5 text-xs text-cyan-500 font-bold font-mono">F.</span>
+                                <input type="number" id="player-floor" min="1" max="263" value="1" oninput="onFloorChanged()" class="w-full bg-[#101d33] border border-cyan-900/40 text-cyan-100 rounded-xl pl-8 pr-3 py-2 text-sm focus:border-cyan-400 focus:outline-none transition-all font-bold font-mono">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                                Goal Pace <span class="group relative cursor-pointer text-[10px] text-cyan-400"><i class="fa-solid fa-circle-info"></i><span class="absolute bottom-5 left-1/2 -translate-x-1/2 bg-slate-950 text-slate-300 text-[10px] p-2 rounded shadow border border-cyan-900 w-36 hidden group-hover:block leading-relaxed z-10 normal-case font-normal">Standard is 2.5 floors/day, taking 2 days per week off.</span></span>
+                            </label>
+                            <select id="pacing-rate" onchange="onFloorChanged()" class="w-full bg-[#101d33] border border-cyan-900/40 text-cyan-100 rounded-xl px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none transition-all cursor-pointer font-semibold">
+                                <option value="2">Cautious (2 Fl/day)</option>
+                                <option value="2.5" selected>Standard (2.5 Fl/day)</option>
+                                <option value="3">Aggressive (3 Fl/day)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Comparison Status Display -->
+                    <div id="comparison-badge" class="p-4 rounded-xl border transition-all duration-300 flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-slate-300 font-semibold tracking-wide">Pacing Status:</span>
+                            <span id="pacing-status-label" class="text-xs font-black uppercase px-2.5 py-0.5 rounded-full">Calculating...</span>
+                        </div>
+                        <div id="pacing-subtext" class="text-xs font-normal">Initializing stats comparison...</div>
+                    </div>
+
+                    <!-- Target Floor Details Card -->
+                    <div class="bg-[#101d33] p-4 rounded-xl border border-cyan-900/20 space-y-3">
+                        <div class="flex justify-between items-center border-b border-cyan-900/20 pb-2.5">
+                            <span class="text-xs text-slate-400 font-medium">Active Block Window:</span>
+                            <span id="target-block-name" class="text-xs font-bold text-cyan-300">Block 1: Thebel</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-center text-xs">
+                            <div class="bg-[#0a1322] p-2 rounded-lg border border-cyan-950/40">
+                                <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Target Floor Today</div>
+                                <div id="target-floor-val" class="text-base font-extrabold text-cyan-400 mt-0.5">--</div>
+                            </div>
+                            <div class="bg-[#0a1322] p-2 rounded-lg border border-cyan-950/40">
+                                <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Block Target Limit</div>
+                                <div id="block-max-floor" class="text-base font-extrabold text-indigo-400 mt-0.5">--</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Progress gauge inside current block -->
+                        <div class="space-y-1 pt-1">
+                            <div class="flex justify-between text-[10px] text-slate-400">
+                                <span class="font-bold">Block Progress:</span>
+                                <span id="block-progress-percentage" class="font-mono font-bold text-cyan-400">0%</span>
+                            </div>
+                            <div class="w-full bg-[#0a1322] h-2 rounded-full overflow-hidden border border-cyan-950/50">
+                                <div id="block-progress-bar" class="bg-gradient-to-r from-cyan-500 to-indigo-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Right Panel (Interactive Tabs: Classroom, Compendium, Notes) -->
+            <div class="lg:col-span-7">
+                
+                <!-- Tab Headings -->
+                <div class="bg-[#0a1322] border border-cyan-950/60 rounded-2xl p-2 flex gap-1 mb-6 shadow-md">
+                    <button onclick="switchTab('classroom')" id="btn-tab-classroom" class="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-cyan-400 bg-[#101d33] border border-cyan-500/20 shadow-inner">
+                        <i class="fa-solid fa-graduation-cap text-sm"></i> <span class="hidden sm:inline">Classroom Cheats</span>
+                    </button>
+                    <button onclick="switchTab('compendium')" id="btn-tab-compendium" class="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-slate-200">
+                        <i class="fa-solid fa-book-sparkles text-sm"></i> <span class="hidden sm:inline">Compendium</span>
+                    </button>
+                    <button onclick="switchTab('notes')" id="btn-tab-notes" class="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-slate-200">
+                        <i class="fa-solid fa-pen-to-square text-sm"></i> <span class="hidden sm:inline">Operation Notes</span>
+                    </button>
+                </div>
+
+                <!-- TAB 1: Classroom Solutions Section -->
+                <div id="tab-classroom" class="tab-content bg-[#0a1322] border border-cyan-950/60 rounded-2xl p-5 shadow-[0_4px_25px_rgba(0,0,0,0.4)] space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                                <span class="bg-indigo-950/60 text-indigo-400 p-1.5 rounded-lg text-xs border border-indigo-900/40"><i class="fa-solid fa-landmark"></i></span> School Quiz & Midterm Answers
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-1">Get top grades & max out your <span class="text-cyan-400 font-semibold">Charm</span> instantly.</p>
+                        </div>
+                        <div class="relative min-w-[180px]">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-500 text-xs"></i>
+                            <input type="text" id="quiz-search" oninput="filterQuizzes()" placeholder="Search keywords..." class="w-full bg-[#101d33] border border-cyan-900/30 text-slate-200 text-xs pl-8 pr-3 py-2.5 rounded-xl focus:outline-none focus:border-cyan-400 transition-all">
+                        </div>
+                    </div>
+
+                    <!-- Quick Month Filters -->
+                    <div id="quiz-month-filters" class="flex flex-wrap gap-1 bg-[#070e1a] p-1.5 rounded-xl border border-cyan-950/50">
+                        <button onclick="filterQuizMonth('all')" class="px-2.5 py-1 text-[10px] font-bold uppercase rounded-lg transition-all bg-cyan-950/60 text-cyan-300 border border-cyan-500/30">All</button>
+                        <!-- Month buttons are rendered dynamically in JS -->
+                    </div>
+
+                    <!-- Quiz Answers Scrollable Body -->
+                    <div class="overflow-y-auto max-h-[460px] pr-2 space-y-2.5" id="quiz-container">
+                        <!-- Dynamic quiz elements injected here -->
+                    </div>
+                </div>
+
+
+                <!-- TAB 2: Persona Compendium Section -->
+                <div id="tab-compendium" class="tab-content hidden bg-[#0a1322] border border-cyan-950/60 rounded-2xl p-5 shadow-[0_4px_25px_rgba(0,0,0,0.4)] space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-base font-bold text-slate-100">Velvet Compendium</h3>
+                                <span id="compendium-completion" class="text-[11px] font-extrabold bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-900/50">0/0 Registered</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Checkoff registered personas or log custom builds.</p>
+                        </div>
+                        <!-- Compendium actions -->
+                        <div class="flex gap-2">
+                            <button onclick="openCustomPersonaModal()" class="bg-cyan-950/80 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-500/30 px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1">
+                                <i class="fa-solid fa-plus"></i> Add Persona
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filter Section -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-500 text-xs"></i>
+                            <input type="text" id="persona-search" oninput="filterCompendium()" placeholder="Search name/level..." class="w-full bg-[#101d33] border border-cyan-900/30 text-slate-200 text-xs pl-8 pr-3 py-2.5 rounded-xl focus:outline-none focus:border-cyan-400 transition-all">
+                        </div>
+                        <div>
+                            <select id="persona-arcana-filter" onchange="filterCompendium()" class="w-full bg-[#101d33] border border-cyan-900/30 text-slate-300 text-xs px-3 py-2.5 rounded-xl focus:outline-none focus:border-cyan-400 cursor-pointer transition-all">
+                                <option value="all">All Arcanas</option>
+                                <!-- Populate all 22 Arcanas -->
+                            </select>
+                        </div>
+                        <div>
+                            <select id="persona-status-filter" onchange="filterCompendium()" class="w-full bg-[#101d33] border border-cyan-900/30 text-slate-300 text-xs px-3 py-2.5 rounded-xl focus:outline-none focus:border-cyan-400 cursor-pointer transition-all">
+                                <option value="all">Show All</option>
+                                <option value="registered">Registered Only</option>
+                                <option value="unregistered">Unregistered Only</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Custom Add Drawer (Hidden initially) -->
+                    <div id="custom-persona-form" class="hidden bg-[#0d1c32] p-4 rounded-xl border border-cyan-500/20 space-y-3">
+                        <div class="flex items-center justify-between border-b border-cyan-900/20 pb-2">
+                            <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-widest flex items-center gap-1"><i class="fa-solid fa-sparkles"></i> Custom Persona</h4>
+                            <button onclick="closeCustomPersonaModal()" class="text-slate-400 hover:text-slate-200 text-xs"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <input type="text" id="custom-p-name" placeholder="Name" class="bg-[#101d33] border border-cyan-900/30 text-slate-200 text-xs px-2.5 py-2 rounded-lg focus:outline-none focus:border-cyan-400">
+                            <select id="custom-p-arcana" class="bg-[#101d33] border border-cyan-900/30 text-slate-200 text-xs px-2.5 py-2 rounded-lg focus:outline-none focus:border-cyan-400">
+                                <!-- Generated list of arcanas dynamically -->
+                            </select>
+                            <input type="number" id="custom-p-lvl" placeholder="Lvl" class="bg-[#101d33] border border-cyan-900/30 text-slate-200 text-xs px-2.5 py-2 rounded-lg focus:outline-none focus:border-cyan-400">
+                            <button onclick="saveCustomPersona()" class="bg-cyan-500 hover:bg-cyan-400 text-[#050b14] font-bold text-xs px-2 py-2 rounded-lg transition-all">Save Entry</button>
+                        </div>
+                    </div>
+
+                    <!-- Persona Database Scrollable Area -->
+                    <div class="overflow-y-auto max-h-[380px] border border-cyan-950/40 rounded-xl bg-[#070e1a]">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-[#101d33] text-[10px] text-slate-400 uppercase font-extrabold tracking-wider border-b border-cyan-950/40">
+                                    <th class="py-3 px-4 text-center w-12">SEES</th>
+                                    <th class="py-3 px-3">Persona Name</th>
+                                    <th class="py-3 px-3">Arcana</th>
+                                    <th class="py-3 px-3 text-center">Base Level</th>
+                                    <th class="py-3 px-3 text-right pr-4">Type</th>
+                                </tr>
+                            </thead>
+                            <tbody id="persona-table-body" class="divide-y divide-cyan-950/20 text-xs font-medium text-slate-200">
+                                <!-- Populate persona list dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+                <!-- TAB 3: SEES Operation Notes -->
+                <div id="tab-notes" class="tab-content hidden bg-[#0a1322] border border-cyan-950/60 rounded-2xl p-5 shadow-[0_4px_25px_rgba(0,0,0,0.4)] space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                                <span class="bg-cyan-950 text-cyan-400 p-1.5 rounded-lg text-xs border border-cyan-900/50"><i class="fa-solid fa-book"></i></span> Mission Organizer & S-Link Log
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-1">Persistent task organizer for tracking side-quests, links, and builds.</p>
+                        </div>
+                    </div>
+
+                    <!-- Task Quick Load Templates -->
+                    <div class="bg-[#070e1a] p-3 rounded-xl border border-cyan-950/50 space-y-2">
+                        <span class="text-[10px] font-bold text-cyan-400 tracking-wider uppercase block">Inject Task Planner Templates:</span>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="injectTemplate('slink')" class="bg-cyan-950/50 hover:bg-cyan-900/50 text-cyan-300 border border-cyan-800/40 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-people-group"></i> 👥 S-Link Tracker
+                            </button>
+                            <button onclick="injectTemplate('party')" class="bg-indigo-950/50 hover:bg-indigo-900/50 text-indigo-300 border border-indigo-800/40 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-users-gear"></i> ⚔️ Party Planners
+                            </button>
+                            <button onclick="injectTemplate('quests')" class="bg-blue-950/50 hover:bg-blue-900/50 text-blue-300 border border-blue-800/40 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-list-check"></i> 📋 Velvet Quests
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Note Textarea -->
+                    <div class="space-y-1">
+                        <textarea id="notes-textarea" oninput="onNotesChanged()" placeholder="Keep your custom fusion notes, current requests, and target stats here... Auto-saves instantly!" class="w-full bg-[#101d33] border border-cyan-900/40 text-slate-100 p-4 rounded-xl text-xs h-[300px] focus:outline-none focus:border-cyan-400 font-mono leading-relaxed transition-all focus:ring-1 focus:ring-cyan-400/20"></textarea>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+
+    <!-- Global message container/Toast (No native alert constraint) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 space-y-2 z-50 pointer-events-none"></div>
+
+    <script>
+
+        // P3P Classroom Answer Database
+        const QUIZ_DATABASE = [
+            { date: "4/8", q: "Who did I say was my favorite author?", a: "Utsubo Kubota", type: "Quiz" },
+            { date: "4/18", q: "What was the style of houses in the Jomon period called?", a: "Mud huts", type: "Quiz" },
+            { date: "4/27", q: "Do you know when numbers were invented?", a: "6,000 years ago.", type: "Quiz" },
+            { date: "5/6", q: "What do you call water without much calcium and magnesium?", a: "Soft water.", type: "Quiz" },
+            { date: "5/13", q: "How fast would you say the Earth rotates near the equator?", a: "About 1,700 km/hour.", type: "Quiz" },
+            { date: "5/15", q: "Translate 'pan' to English.", a: "Bread.", type: "Quiz" },
+            { date: "5/19", q: "Translate 'pan' to English. (Midterms)", a: "Bread", type: "Exam" },
+            { date: "5/20", q: "How fast does the Earth rotate near the equator? (Midterms)", a: "Faster than sound", type: "Exam" },
+            { date: "5/21", q: "What's the name for water high in calcium and magnesium? (Midterms)", a: "Hard water", type: "Exam" },
+            { date: "5/22", q: "Where is the Kitora Tomb located? (Midterms)", a: "Nara", type: "Exam" },
+            { date: "6/15", q: "Fill in the blank: It rained all last week, _____ it'll rain again today.", a: "And...", type: "Quiz" },
+            { date: "6/17", q: "What formed the origins of magic?", a: "Shamanism.", type: "Quiz" },
+            { date: "6/22", q: "Which of these is NOT known as a devilfish?", a: "Jellyfish.", type: "Quiz" },
+            { date: "6/25", q: "Which form of natural magic was used to look for water sources?", a: "Dowsing.", type: "Quiz" },
+            { date: "6/29", q: "Which way does the swirl go in the northern hemisphere?", a: "It can go either way.", type: "Quiz" },
+            { date: "7/3", q: "What is the name of this pavilion?", a: "The Global Heritage Pavilion.", type: "Quiz" },
+            { date: "7/8", q: "Which of these phrases is incorrect?", a: "I failed, it's over now.", type: "Quiz" },
+            { date: "7/9", q: "What law served as a foundation for the development of feudalism?", a: "The Konden Einen Shizaihou.", type: "Quiz" },
+            { date: "7/10", q: "What is the mystical study of Jewish texts?", a: "Kabbalah.", type: "Quiz" },
+            { date: "7/11", q: "What title did Taira No Masakado claim for himself?", a: "Imperial Prince.", type: "Quiz" },
+            { date: "7/14", q: "What form of natural magic was used to find water sources? (Finals)", a: "Dowsing", type: "Exam" },
+            { date: "7/15", q: "Some Europeans call this creature 'devilfish' and refuse to eat it. (Finals)", a: "Octopus", type: "Exam" },
+            { date: "7/16", q: "Who established the Kamakura shogunate? (Finals)", a: "Minamoto No Yoritomo", type: "Exam" },
+            { date: "7/17", q: "Which is an example of a comma splice? (Finals)", a: "I went, I learned.", type: "Exam" },
+            { date: "9/1", q: "What do you call the phenomenon when electrical resistance is zero?", a: "Superconductivity.", type: "Quiz" },
+            { date: "9/10", q: "What do we say after we eat?", a: "Gochisou-sama.", type: "Quiz" },
+            { date: "9/11", q: "Which book helped further the art of magic during the Renaissance?", a: "The Hermetica.", type: "Quiz" },
+            { date: "9/14", q: "Which of these is NOT one of Japan's prohibitions on nuclear weapons?", a: "Can't let others produce.", type: "Quiz" },
+            { date: "9/26", q: "What is the collective name for the four holy numbers in numerology?", a: "The Tetractys.", type: "Quiz" },
+            { date: "10/7", q: "Do you know why a matador's capote is red?", a: "To excite the audience.", type: "Quiz" },
+            { date: "10/13", q: "What is the number one source of stress for women? (Midterms)", a: "Husbands", type: "Exam" },
+            { date: "10/14", q: "Who founded numerology? (Midterms)", a: "Moses", type: "Exam" },
+            { date: "10/15", q: "What is superconductivity? (Midterms)", a: "Zero electrical resistance", type: "Exam" },
+            { date: "10/16", q: "Which is the other incident that triggered Sengoku era? (Midterms)", a: "Coup of Meiou", type: "Exam" },
+            { date: "10/19", q: "How many calendar patterns are there?", a: "Fourteen.", type: "Quiz" },
+            { date: "10/22", q: "Natto comes from soybeans, too, but how is it made?", a: "By fermenting them.", type: "Quiz" },
+            { date: "10/23", q: "Who was the founder of Theosophy?", a: "Madam Blavatsky.", type: "Quiz" },
+            { date: "10/26", q: "Which one of these things is NOT Arabic?", a: "Wristwatch.", type: "Quiz" },
+            { date: "10/29", q: "Which enzyme is needed to break down lactose?", a: "Lactase.", type: "Quiz" },
+            { date: "11/7", q: "Translate: 'Fuyu wa tsutomete.'", a: "Winter mornings are pleasant.", type: "Quiz" },
+            { date: "11/12", q: "What is the ancient Indian magical text I mentioned today?", a: "The Upanishads.", type: "Quiz" },
+            { date: "11/30", q: "Did the men pluck eyebrows and color teeth too?", a: "They did both.", type: "Quiz" },
+            { date: "12/7", q: "Which element is found in ozone?", a: "Ozone.", type: "Quiz" },
+            { date: "12/11", q: "Do you know which is an irregular plural noun? (Cacti)", a: "Cacti.", type: "Quiz" },
+            { date: "12/14", q: "What year did the Battle of Dan-no-ura begin? (Finals)", a: "1185", type: "Exam" },
+            { date: "12/15", q: "Which element is found in ozone? (Finals)", a: "Oxygen", type: "Exam" },
+            { date: "12/16", q: "Which rule relates to Lorentz Force? (Finals)", a: "Left-hand rule", type: "Exam" },
+            { date: "12/17", q: "Translate the following: 'Fuyu wa tsutomete.' (Finals)", a: "Winter mornings are pleasant", type: "Exam" },
+            { date: "12/18", q: "Which plural is formed correctly? (Finals)", a: "Cacti", type: "Exam" },
+            { date: "12/21", q: "What sorcery was Himiko said to have used?", a: "Kido.", type: "Quiz" },
+            { date: "12/22", q: "What is the feeling of happiness in near-death experience?", a: "Euphoria.", type: "Quiz" },
+            { date: "1/8", q: "Of the three phrases on the board, tell me which is correct?", a: "It's wrong.", type: "Quiz" },
+            { date: "1/18", q: "I mentioned two Greek sorceresses. One was Medea; who was the other?", a: "Circe.", type: "Quiz" }
+        ];
+
+
+        // Persona 3 Portable Persona Seed Database (Preloaded across all 22 Arcanas)
+        const PRELOADED_PERSONAS = [
+            { name: "Orpheus", arcana: "Fool", lvl: 1 },
+            { name: "Slime", arcana: "Fool", lvl: 12 },
+            { name: "Legion", arcana: "Fool", lvl: 22 },
+            { name: "Black Frost", arcana: "Fool", lvl: 34 },
+            { name: "Loki", arcana: "Fool", lvl: 58 },
+            { name: "Susano-o", arcana: "Fool", lvl: 76 },
+            { name: "Pixie", arcana: "Magician", lvl: 2 },
+            { name: "Jack Frost", arcana: "Magician", lvl: 8 },
+            { name: "Pyro Jack", arcana: "Magician", lvl: 14 },
+            { name: "Surt", arcana: "Magician", lvl: 52 },
+            { name: "Apsaras", arcana: "Priestess", lvl: 3 },
+            { name: "Unicorn", arcana: "Priestess", lvl: 11 },
+            { name: "High Pixie", arcana: "Priestess", lvl: 21 },
+            { name: "Scathach", arcana: "Priestess", lvl: 64 },
+            { name: "Laksmi", arcana: "Empress", lvl: 57 },
+            { name: "Alilat", arcana: "Empress", lvl: 84 },
+            { name: "Forneus", arcana: "Emperor", lvl: 7 },
+            { name: "Take-Mikazuchi", arcana: "Emperor", lvl: 25 },
+            { name: "King Frost", arcana: "Emperor", lvl: 30 },
+            { name: "Odin", arcana: "Emperor", lvl: 57 },
+            { name: "Omoikane", arcana: "Hierophant", lvl: 7 },
+            { name: "Berith", arcana: "Hierophant", lvl: 13 },
+            { name: "Kohryu", arcana: "Hierophant", lvl: 66 },
+            { name: "Alp", arcana: "Lovers", lvl: 6 },
+            { name: "Narcissus", arcana: "Lovers", lvl: 20 },
+            { name: "Queen Mab", arcana: "Lovers", lvl: 27 },
+            { name: "Ara Mitama", arcana: "Chariot", lvl: 6 },
+            { name: "Chimera", arcana: "Chariot", lvl: 9 },
+            { name: "Thor", arcana: "Chariot", lvl: 53 },
+            { name: "Archangel", arcana: "Justice", lvl: 10 },
+            { name: "Melchizedek", arcana: "Justice", lvl: 59 },
+            { name: "Yomotsu Shikome", arcana: "Hermit", lvl: 9 },
+            { name: "Lamia", arcana: "Hermit", lvl: 25 },
+            { name: "Nebiros", arcana: "Hermit", lvl: 50 },
+            { name: "Fortune", arcana: "Fortune", lvl: 33 },
+            { name: "Norn", arcana: "Fortune", lvl: 62 },
+            { name: "Valkyrie", arcana: "Strength", lvl: 11 },
+            { name: "Titan", arcana: "Strength", lvl: 23 },
+            { name: "Siegfried", arcana: "Strength", lvl: 59 },
+            { name: "Inugami", arcana: "Hanged Man", lvl: 10 },
+            { name: "Orthrus", arcana: "Hanged Man", lvl: 28 },
+            { name: "Ghoul", arcana: "Death", lvl: 18 },
+            { name: "Pale Rider", arcana: "Death", lvl: 24 },
+            { name: "Alice", arcana: "Death", lvl: 56 },
+            { name: "Thanatos", arcana: "Death", lvl: 76 },
+            { name: "Nigi Mitama", arcana: "Temperance", lvl: 12 },
+            { name: "Genbu", arcana: "Temperance", lvl: 29 },
+            { name: "Lilim", arcana: "Devil", lvl: 8 },
+            { name: "Succubus", arcana: "Devil", lvl: 43 },
+            { name: "Beelzebub", arcana: "Devil", lvl: 81 },
+            { name: "Eligor", arcana: "Tower", lvl: 31 },
+            { name: "Cu Chulainn", arcana: "Tower", lvl: 40 },
+            { name: "Neko Shogun", arcana: "Star", lvl: 19 },
+            { name: "Lucifer", arcana: "Star", lvl: 89 },
+            { name: "Gurr", arcana: "Moon", lvl: 15 },
+            { name: "Yatagarasu", arcana: "Sun", lvl: 30 },
+            { name: "Metatron", arcana: "Aeon", lvl: 87 },
+            { name: "Messiah", arcana: "Judgement", lvl: 90 }
+        ];
+
+        const ARCANAS = [
+            "Fool", "Magician", "Priestess", "Empress", "Emperor", "Hierophant", "Lovers", 
+            "Chariot", "Justice", "Hermit", "Fortune", "Strength", "Hanged Man", "Death", 
+            "Temperance", "Devil", "Tower", "Star", "Moon", "Sun", "Judgement", "Aeon"
+        ];
+
+        // P3P Calendar Month limits
+        const MONTH_SIZES = {
+            4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31, 1: 31
+        };
+
+        const FULL_MOONS = [
+            { month: 5, day: 8, name: "Priestess Arcana (First Operation)" },
+            { month: 6, day: 8, name: "Empress & Emperor" },
+            { month: 7, day: 7, name: "Hierophant & Lovers" },
+            { month: 8, day: 6, name: "Chariot & Justice" },
+            { month: 9, day: 4, name: "Hermit Arcana" },
+            { month: 10, day: 4, name: "Fortune & Strength" },
+            { month: 11, day: 3, name: "Hanged Man Operation" },
+            { month: 12, day: 2, name: "Nyx Avatar Decision Gate" },
+            { month: 1, day: 31, name: "The Promised Day (Final Nyx Ascent)" }
+        ];
+
+        // Tartarus block data mapping
+        const TARTARUS_BLOCKS = [
+            { name: "Block 1 (Thebel)", startFloor: 2, endFloor: 16, openM: 4, openD: 20, closeM: 5, closeD: 9 },
+            { name: "Block 2 (Arqa) - Pt 1", startFloor: 17, endFloor: 40, openM: 5, openD: 10, closeM: 6, closeD: 13 },
+            { name: "Block 2 (Arqa) - Pt 2", startFloor: 41, endFloor: 64, openM: 6, openD: 14, closeM: 7, closeD: 8 },
+            { name: "Block 3 (Yabbashah) - Pt 1", startFloor: 65, endFloor: 89, openM: 7, openD: 9, closeM: 8, closeD: 7 },
+            { name: "Block 3 (Yabbashah) - Pt 2", startFloor: 90, endFloor: 114, openM: 8, openD: 8, closeM: 9, closeD: 9 },
+            { name: "Block 4 (Tziah) - Pt 1", startFloor: 115, endFloor: 139, openM: 9, openD: 10, closeM: 10, closeD: 5 },
+            { name: "Block 4 (Tziah) - Pt 2", startFloor: 140, endFloor: 164, openM: 10, openD: 6, closeM: 11, closeD: 5 },
+            { name: "Block 5 (Harabah)", startFloor: 165, endFloor: 214, openM: 11, openD: 6, closeM: 12, closeD: 31 },
+            { name: "Block 6 (Adamah)", startFloor: 215, endFloor: 263, openM: 1, openD: 1, closeM: 1, closeD: 31 }
+        ];
+
+
+        // Standard State configuration
+        let state = {
+            month: 4,
+            day: 7,
+            currentFloor: 1,
+            pacingRate: 2.5,
+            registeredPersonas: [], // stored by unique name strings
+            customPersonas: [], // custom added structures
+            completedQuizzes: [], // stored by date strings e.g. "4/8"
+            notes: "",
+            currentTab: "classroom",
+            quizFilterMonth: "all"
+        };
+
+        // Date helper conversions
+        const monthOrder = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1];
+
+        function getCumulativeDay(m, d) {
+            let total = 0;
+            for (let month of monthOrder) {
+                if (month === m) {
+                    total += d;
+                    break;
+                }
+                total += MONTH_SIZES[month];
+            }
+            return total;
+        }
+
+        // Active days math since block opened
+        function getActiveDaysSince(startM, startD, currentM, currentD) {
+            const currentCum = getCumulativeDay(currentM, currentD);
+            const startCum = getCumulativeDay(startM, startD);
+            const elapsed = currentCum - startCum;
+            if (elapsed <= 0) return 0;
+            
+            // Exclude 2 days off per week
+            const fullWeeks = Math.floor(elapsed / 7);
+            const remainingDays = elapsed % 7;
+            return (fullWeeks * 5) + Math.min(5, remainingDays);
+        }
+
+        // Retrieve the current active block object
+        function getActiveBlock(m, d) {
+            const currentCum = getCumulativeDay(m, d);
+            const b1Open = getCumulativeDay(TARTARUS_BLOCKS[0].openM, TARTARUS_BLOCKS[0].openD);
+            
+            if (currentCum < b1Open) {
+                return {
+                    name: "Tartarus Restricted",
+                    startFloor: 1,
+                    endFloor: 1,
+                    openM: 4, openD: 7,
+                    closeM: 4, closeD: 19,
+                    isRestricted: true
+                };
+            }
+            
+            for (let b of TARTARUS_BLOCKS) {
+                const openCum = getCumulativeDay(b.openM, b.openD);
+                const closeCum = getCumulativeDay(b.closeM, b.closeD);
+                if (currentCum >= openCum && currentCum <= closeCum) {
+                    return b;
+                }
+            }
+            
+            // Fallbacks for gaps or boundary dates
+            for (let i = 0; i < TARTARUS_BLOCKS.length; i++) {
+                const b = TARTARUS_BLOCKS[i];
+                const openCum = getCumulativeDay(b.openM, b.openD);
+                if (currentCum < openCum) {
+                    return TARTARUS_BLOCKS[i - 1] || b;
+                }
+            }
+            return TARTARUS_BLOCKS[TARTARUS_BLOCKS.length - 1];
+        }
+
+        // Calculate custom Target Floor based on pacing rules requested
+        function calculateTargetFloor(m, d, pace) {
+            const block = getActiveBlock(m, d);
+            if (block.isRestricted) return 1;
+            
+            const activeDays = getActiveDaysSince(block.openM, block.openD, m, d);
+            const targetProgression = Math.round(activeDays * parseFloat(pace));
+            return Math.min(block.endFloor, block.startFloor + targetProgression);
+        }
+
+        // Moon descriptions relative to countdown days
+        function getMoonData(daysToNext) {
+            if (daysToNext === 0) return { icon: "🌕", text: "Full Moon (Operational Night)", color: "text-red-400 font-extrabold animate-pulse" };
+            if (daysToNext <= 2) return { icon: "🌖", text: "Waxing Gibbous (High Threat)", color: "text-orange-300 font-bold" };
+            if (daysToNext <= 6) return { icon: "🌗", text: "First Quarter Moon", color: "text-yellow-200" };
+            if (daysToNext <= 11) return { icon: "🌘", text: "Waxing Crescent Moon", color: "text-blue-300" };
+            if (daysToNext <= 15) return { icon: "🌑", text: "New Moon (Low Threat)", color: "text-slate-400" };
+            if (daysToNext <= 20) return { icon: "🌒", text: "Waning Crescent Moon", color: "text-blue-300" };
+            if (daysToNext <= 24) return { icon: "🌓", text: "Last Quarter Moon", color: "text-yellow-200" };
+            return { icon: "🌖", text: "Waning Gibbous Moon", color: "text-orange-200" };
+        }
+
+        // Find and track nearest full moon schedule
+        function findNextFullMoon(m, d) {
+            const currentCum = getCumulativeDay(m, d);
+            for (let fm of FULL_MOONS) {
+                const fmCum = getCumulativeDay(fm.month, fm.day);
+                if (fmCum >= currentCum) {
+                    return {
+                        ...fm,
+                        daysLeft: fmCum - currentCum
+                    };
+                }
+            }
+            return null; // Past January 31st
+        }
+
+        /* State persistence & loading */
+        function saveToStorage() {
+            localStorage.setItem("p3p_sees_tracker_state", JSON.stringify(state));
+            const indicator = document.getElementById("save-indicator");
+            indicator.style.opacity = "1";
+            setTimeout(() => {
+                indicator.style.opacity = "1";
+            }, 500);
+        }
+
+        function loadFromStorage() {
+            const data = localStorage.getItem("p3p_sees_tracker_state");
+            if (data) {
+                try {
+                    const parsed = JSON.parse(data);
+                    state = { ...state, ...parsed };
+                } catch (e) {
+                    console.error("Storage corrupt. Initializing defaults.", e);
+                }
+            }
+        }
+
+        function resetTrackerData() {
+            if (confirm("Are you sure you want to reset all tracking progress, checked class answers, custom personas, and operation notes?")) {
+                localStorage.removeItem("p3p_sees_tracker_state");
+                state = {
+                    month: 4,
+                    day: 7,
+                    currentFloor: 1,
+                    pacingRate: 2.5,
+                    registeredPersonas: [],
+                    customPersonas: [],
+                    completedQuizzes: [],
+                    notes: "",
+                    currentTab: "classroom",
+                    quizFilterMonth: "all"
+                };
+                saveToStorage();
+                initApp();
+                showToast("Tracker has been reset to defaults.", "info");
+            }
+        }
+
+        /* Core UI updates & renders */
+        function initApp() {
+            loadFromStorage();
+            
+            // Build Month Dropdowns
+            document.getElementById("game-month").value = state.month;
+            populateDaysDropdown();
+            document.getElementById("game-day").value = state.day;
+            
+            // Load custom floor/pace inputs
+            document.getElementById("player-floor").value = state.currentFloor;
+            document.getElementById("pacing-rate").value = state.pacingRate;
+            document.getElementById("notes-textarea").value = state.notes;
+
+            // Render components
+            buildMonthFilters();
+            renderClassroomAnswers();
+            populateArcanaDropdowns();
+            renderCompendium();
+            updateTargetFloorMetrics();
+            switchTab(state.currentTab);
+        }
+
+        function populateDaysDropdown() {
+            const month = parseInt(document.getElementById("game-month").value);
+            const maxDays = MONTH_SIZES[month];
+            const daySelect = document.getElementById("game-day");
+            daySelect.innerHTML = "";
+            
+            // Restrict starting date limits (April 7th campaign begin)
+            let start = 1;
+            if (month === 4) start = 7;
+            
+            for (let i = start; i <= maxDays; i++) {
+                const opt = document.createElement("option");
+                opt.value = i;
+                opt.textContent = i;
+                daySelect.appendChild(opt);
+            }
+        }
+
+        function onDateChanged() {
+            state.month = parseInt(document.getElementById("game-month").value);
+            state.day = parseInt(document.getElementById("game-day").value);
+            saveToStorage();
+            updateTargetFloorMetrics();
+            checkTodayQuiz();
+        }
+
+        function adjustDays(amount) {
+            let currentCum = getCumulativeDay(state.month, state.day);
+            currentCum += amount;
+            
+            // Limit bounds (April 7 to Jan 31)
+            const minCum = getCumulativeDay(4, 7);
+            const maxCum = getCumulativeDay(1, 31);
+            
+            if (currentCum < minCum) currentCum = minCum;
+            if (currentCum > maxCum) currentCum = maxCum;
+            
+            // Back-convert cumulative days to month and day
+            let targetMonth = 4;
+            let targetDay = 7;
+            let tempCum = currentCum;
+            
+            for (let month of monthOrder) {
+                const size = MONTH_SIZES[month];
+                // Handle starting offset for April
+                let checkSize = size;
+                if (tempCum <= checkSize) {
+                    targetMonth = month;
+                    targetDay = tempCum;
+                    break;
+                }
+                tempCum -= checkSize;
+            }
+            
+            state.month = targetMonth;
+            state.day = targetDay;
+            
+            document.getElementById("game-month").value = targetMonth;
+            populateDaysDropdown();
+            document.getElementById("game-day").value = targetDay;
+            
+            saveToStorage();
+            updateTargetFloorMetrics();
+            checkTodayQuiz();
+        }
+
+        function onFloorChanged() {
+            const inputVal = parseInt(document.getElementById("player-floor").value);
+            state.currentFloor = isNaN(inputVal) || inputVal < 1 ? 1 : Math.min(263, inputVal);
+            state.pacingRate = parseFloat(document.getElementById("pacing-rate").value);
+            saveToStorage();
+            updateTargetFloorMetrics();
+        }
+
+        function onNotesChanged() {
+            state.notes = document.getElementById("notes-textarea").value;
+            saveToStorage();
+        }
+
+        /* Tartarus Target UI Logic */
+        function updateTargetFloorMetrics() {
+            const block = getActiveBlock(state.month, state.day);
+            const targetFloor = calculateTargetFloor(state.month, state.day, state.pacingRate);
+            
+            document.getElementById("target-block-name").textContent = block.name;
+            document.getElementById("target-floor-val").textContent = targetFloor;
+            document.getElementById("block-max-floor").textContent = block.endFloor;
+
+            // Compute Tartarus Block Progress gauge
+            let progress = 0;
+            if (block.isRestricted) {
+                progress = 0;
+            } else {
+                const span = block.endFloor - block.startFloor;
+                if (span > 0) {
+                    progress = Math.round(((state.currentFloor - block.startFloor) / span) * 100);
+                } else {
+                    progress = 100;
+                }
+            }
+            progress = Math.max(0, Math.min(100, progress));
+            
+            document.getElementById("block-progress-percentage").textContent = progress + "%";
+            document.getElementById("block-progress-bar").style.width = progress + "%";
+
+            // Full Moon Countdown operations
+            const nextFM = findNextFullMoon(state.month, state.day);
+            const countdownEl = document.getElementById("countdown-text");
+            const moonIconEl = document.getElementById("moon-icon");
+            const moonTextEl = document.getElementById("moon-text");
+
+            if (nextFM) {
+                countdownEl.textContent = `${nextFM.daysLeft} Days to ${nextFM.name.split(" ")[0]} Operation!`;
+                if (nextFM.daysLeft === 0) {
+                    countdownEl.className = "text-sm font-black text-red-500 animate-pulse";
+                } else if (nextFM.daysLeft <= 3) {
+                    countdownEl.className = "text-sm font-bold text-orange-400";
+                } else {
+                    countdownEl.className = "text-sm font-semibold text-cyan-400";
+                }
+                const moon = getMoonData(nextFM.daysLeft);
+                moonIconEl.textContent = moon.icon;
+                moonTextEl.textContent = moon.text;
+                moonTextEl.className = "text-xs " + moon.color;
+            } else {
+                countdownEl.textContent = "Nyx campaign complete. Endgame reached.";
+                countdownEl.className = "text-sm font-semibold text-slate-400";
+                moonIconEl.textContent = "🌑";
+                moonTextEl.textContent = "N/A";
+            }
+
+            // Pacing evaluation display
+            const badge = document.getElementById("comparison-badge");
+            const label = document.getElementById("pacing-status-label");
+            const subtext = document.getElementById("pacing-subtext");
+
+            if (block.isRestricted) {
+                badge.className = "p-4 rounded-xl border border-cyan-950 bg-cyan-950/20 text-slate-300";
+                label.textContent = "STANDBY";
+                label.className = "text-xs font-black uppercase px-2.5 py-0.5 rounded-full bg-slate-900 text-slate-400 border border-slate-700";
+                subtext.innerHTML = "Tartarus exploration hasn't fully unlocked. Spend days studying or raising social ranks!";
+                return;
+            }
+
+            const diff = state.currentFloor - targetFloor;
+            if (diff > 0) {
+                badge.className = "p-4 rounded-xl border border-emerald-900/30 bg-emerald-950/10 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.03)]";
+                label.textContent = "ABOVE TARGET";
+                label.className = "text-xs font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800";
+                subtext.innerHTML = `You are <strong class="text-emerald-300">${diff} floors ahead</strong> of recommended schedule! 🎉 Focus nights on your Social Links.`;
+            } else if (diff === 0) {
+                badge.className = "p-4 rounded-xl border border-cyan-900/30 bg-cyan-950/20 text-cyan-300";
+                label.textContent = "ON TARGET";
+                label.className = "text-xs font-black uppercase px-2.5 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800";
+                subtext.innerHTML = `Perfectly aligned with your pace! 🎯 Keep it steady. You are ready to clear the barrier!`;
+            } else {
+                badge.className = "p-4 rounded-xl border border-rose-950/40 bg-rose-950/10 text-rose-300 shadow-[0_0_15px_rgba(239,68,68,0.03)]";
+                label.textContent = "BELOW TARGET";
+                label.className = "text-xs font-black uppercase px-2.5 py-0.5 rounded-full bg-rose-950 text-rose-400 border border-rose-800";
+                subtext.innerHTML = `You are <strong class="text-rose-300">${Math.abs(diff)} floors behind</strong> target pacing! ⚠️ Organize a Tartarus party to secure the block barrier before full moon!`;
+            }
+        }
+
+        // Today's Quiz Highlight Display
+        function checkTodayQuiz() {
+            const dateStr = `${state.month}/${state.day}`;
+            const quiz = QUIZ_DATABASE.find(q => q.date === dateStr);
+            const card = document.getElementById("today-quiz-card");
+            if (quiz) {
+                card.classList.remove("hidden");
+                document.getElementById("today-quiz-q").textContent = `[${quiz.type}] ${quiz.q}`;
+                document.getElementById("today-quiz-a").innerHTML = `<i class="fa-solid fa-square-check text-emerald-400 mr-1"></i> Correct Answer: <span class="underline font-bold">${quiz.a}</span>`;
+            } else {
+                card.classList.add("hidden");
+            }
+        }
+
+        /* Classroom Cheatsheet Navigation */
+        function buildMonthFilters() {
+            const container = document.getElementById("quiz-month-filters");
+            const months = ["All", "Apr", "May", "Jun", "Jul", "Sep", "Oct", "Nov", "Dec", "Jan"];
+            const monthMap = { "All": "all", "Apr": "4", "May": "5", "Jun": "6", "Jul": "7", "Sep": "9", "Oct": "10", "Nov": "11", "Dec": "12", "Jan": "1" };
+            
+            container.innerHTML = "";
+            months.forEach(m => {
+                const val = monthMap[m];
+                const btn = document.createElement("button");
+                btn.textContent = m;
+                btn.className = `px-2.5 py-1 text-[10px] font-bold uppercase rounded-lg transition-all ${state.quizFilterMonth === val ? "bg-cyan-950 text-cyan-300 border border-cyan-500/30 shadow" : "text-slate-400 hover:text-slate-200 border border-transparent"}`;
+                btn.onclick = () => {
+                    state.quizFilterMonth = val;
+                    buildMonthFilters();
+                    filterQuizzes();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderClassroomAnswers() {
+            const container = document.getElementById("quiz-container");
+            container.innerHTML = "";
+            
+            QUIZ_DATABASE.forEach(quiz => {
+                const isCompleted = state.completedQuizzes.includes(quiz.date);
+                const quizEl = document.createElement("div");
+                quizEl.className = `p-3 rounded-xl border border-cyan-950/40 transition-all duration-300 flex items-start gap-3 select-none ${isCompleted ? "bg-[#0b172a]/30 opacity-60 border-emerald-950/40" : "bg-[#0c1524] hover:border-cyan-500/10 hover:shadow-lg"}`;
+                quizEl.dataset.date = quiz.date;
+                quizEl.dataset.q = quiz.q.toLowerCase();
+                quizEl.dataset.a = quiz.a.toLowerCase();
+                
+                quizEl.innerHTML = `
+                    <button onclick="toggleQuizCompleted('${quiz.date}')" class="mt-0.5 text-base transition-all active:scale-90 ${isCompleted ? "text-emerald-400" : "text-slate-600 hover:text-slate-400"}">
+                        <i class="fa-solid ${isCompleted ? "fa-circle-check" : "fa-circle-notch"}"></i>
+                    </button>
+                    <div class="flex-1 min-w-0" onclick="toggleQuizCompleted('${quiz.date}')" style="cursor: pointer;">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-[10px] font-extrabold bg-cyan-950 text-cyan-400 px-1.5 py-0.5 rounded border border-cyan-900/30">${quiz.date}</span>
+                            <span class="text-[9px] font-bold uppercase tracking-widest ${quiz.type === 'Exam' ? 'text-rose-400 bg-rose-950/40 border border-rose-900/30 px-1.5 rounded' : 'text-indigo-400 bg-indigo-950/40 border border-indigo-900/30 px-1.5 rounded'}">${quiz.type}</span>
+                        </div>
+                        <p class="text-xs text-slate-300 font-medium mt-1.5 leading-relaxed">${quiz.q}</p>
+                        <div class="mt-1.5 flex items-center text-xs font-bold text-emerald-400 bg-emerald-950/15 py-1 px-2 rounded-lg border border-emerald-900/20 w-fit">
+                            <i class="fa-solid fa-reply mr-1.5 rotate-180"></i> Answer: ${quiz.a}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(quizEl);
+            });
+            filterQuizzes();
+        }
+
+        function toggleQuizCompleted(dateStr) {
+            if (state.completedQuizzes.includes(dateStr)) {
+                state.completedQuizzes = state.completedQuizzes.filter(d => d !== dateStr);
+                showToast(`Quiz date ${dateStr} unchecked!`, "info");
+            } else {
+                state.completedQuizzes.push(dateStr);
+                showToast(`Marked ${dateStr} answer as completed! (+Charm)`, "success");
+            }
+            saveToStorage();
+            renderClassroomAnswers();
+        }
+
+        function filterQuizzes() {
+            const searchVal = document.getElementById("quiz-search").value.toLowerCase();
+            const container = document.getElementById("quiz-container");
+            const children = container.children;
+            
+            for (let child of children) {
+                const qDate = child.dataset.date;
+                const qMonth = qDate.split("/")[0];
+                const textMatch = child.dataset.q.includes(searchVal) || child.dataset.a.includes(searchVal) || qDate.includes(searchVal);
+                const monthMatch = state.quizFilterMonth === "all" || qMonth === state.quizFilterMonth;
+                
+                if (textMatch && monthMatch) {
+                    child.classList.remove("hidden");
+                } else {
+                    child.classList.add("hidden");
+                }
+            }
+        }
+
+        /* Compendium Operations */
+        function populateArcanaDropdowns() {
+            const filter = document.getElementById("persona-arcana-filter");
+            const customSelect = document.getElementById("custom-p-arcana");
+            
+            ARCANAS.forEach(arc => {
+                const opt1 = document.createElement("option");
+                opt1.value = arc;
+                opt1.textContent = arc;
+                filter.appendChild(opt1);
+
+                const opt2 = document.createElement("option");
+                opt2.value = arc;
+                opt2.textContent = arc;
+                customSelect.appendChild(opt2);
+            });
+        }
+
+        function getFullPersonaList() {
+            return [...PRELOADED_PERSONAS, ...state.customPersonas].sort((a,b) => a.lvl - b.lvl);
+        }
+
+        function renderCompendium() {
+            const tbody = document.getElementById("persona-table-body");
+            tbody.innerHTML = "";
+            
+            const list = getFullPersonaList();
+            let registeredCount = 0;
+
+            list.forEach(p => {
+                const isReg = state.registeredPersonas.includes(p.name);
+                if (isReg) registeredCount++;
+
+                const row = document.createElement("tr");
+                row.className = `hover:bg-cyan-950/10 transition-colors border-b border-cyan-950/20 select-none ${isReg ? "bg-cyan-950/5 text-cyan-200" : "opacity-80"}`;
+                row.dataset.name = p.name.toLowerCase();
+                row.dataset.arcana = p.arcana;
+                row.dataset.isReg = isReg ? "true" : "false";
+
+                const isCustom = state.customPersonas.some(cp => cp.name === p.name);
+
+                row.innerHTML = `
+                    <td class="py-3.5 px-3 text-center">
+                        <input type="checkbox" ${isReg ? "checked" : ""} onchange="togglePersonaRegistered('${p.name}')" class="w-4.5 h-4.5 text-cyan-500 bg-[#101d33] border-cyan-900 rounded focus:ring-cyan-400 focus:ring-offset-0 cursor-pointer">
+                    </td>
+                    <td class="py-3.5 px-3 font-semibold text-slate-100 flex items-center gap-1.5">
+                        ${p.name}
+                        ${isCustom ? '<span class="text-[9px] font-black bg-indigo-950 text-indigo-400 border border-indigo-800 px-1 py-0.5 rounded">User</span>' : ''}
+                    </td>
+                    <td class="py-3.5 px-3 font-bold text-slate-400">${p.arcana}</td>
+                    <td class="py-3.5 px-3 text-center font-bold font-mono text-cyan-400">Lv.${p.lvl}</td>
+                    <td class="py-3.5 px-3 text-right pr-4">
+                        ${isCustom ? `
+                            <button onclick="removeCustomPersona('${p.name}')" class="text-xs text-rose-500 hover:text-rose-400 px-2 py-1 bg-rose-950/15 hover:bg-rose-950/35 border border-rose-900/30 rounded-lg transition-all">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </button>
+                        ` : `
+                            <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Database</span>
+                        `}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Completion Counter update
+            const total = list.length;
+            const percentage = total > 0 ? Math.round((registeredCount / total) * 100) : 0;
+            document.getElementById("compendium-completion").textContent = `${registeredCount}/${total} Registered (${percentage}%)`;
+            filterCompendium();
+        }
+
+        function togglePersonaRegistered(pName) {
+            if (state.registeredPersonas.includes(pName)) {
+                state.registeredPersonas = state.registeredPersonas.filter(n => n !== pName);
+                showToast(`${pName} unregistered.`, "info");
+            } else {
+                state.registeredPersonas.push(pName);
+                showToast(`${pName} registered! 🌟`, "success");
+            }
+            saveToStorage();
+            renderCompendium();
+        }
+
+        function filterCompendium() {
+            const search = document.getElementById("persona-search").value.toLowerCase();
+            const arcanaVal = document.getElementById("persona-arcana-filter").value;
+            const statusVal = document.getElementById("persona-status-filter").value;
+
+            const rows = document.getElementById("persona-table-body").children;
+            for (let row of rows) {
+                const nameMatch = row.dataset.name.includes(search);
+                const arcanaMatch = arcanaVal === "all" || row.dataset.arcana === arcanaVal;
+                
+                let statusMatch = true;
+                if (statusVal === "registered") statusMatch = row.dataset.isReg === "true";
+                if (statusVal === "unregistered") statusMatch = row.dataset.isReg === "false";
+
+                if (nameMatch && arcanaMatch && statusMatch) {
+                    row.classList.remove("hidden");
+                } else {
+                    row.classList.add("hidden");
+                }
+            }
+        }
+
+        // Custom entries
+        function openCustomPersonaModal() {
+            document.getElementById("custom-persona-form").classList.remove("hidden");
+        }
+
+        function closeCustomPersonaModal() {
+            document.getElementById("custom-persona-form").classList.add("hidden");
+        }
+
+        function saveCustomPersona() {
+            const name = document.getElementById("custom-p-name").value.trim();
+            const arcana = document.getElementById("custom-p-arcana").value;
+            const lvl = parseInt(document.getElementById("custom-p-lvl").value);
+
+            if (!name || isNaN(lvl)) {
+                showToast("Please provide a valid Persona Name and level.", "warning");
+                return;
+            }
+
+            // Check duplicate
+            const list = getFullPersonaList();
+            if (list.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                showToast("A persona with that name already exists!", "warning");
+                return;
+            }
+
+            const newP = { name, arcana, lvl };
+            state.customPersonas.push(newP);
+            // Default checkoff registered
+            state.registeredPersonas.push(name);
+            saveToStorage();
+            
+            // reset custom input form fields
+            document.getElementById("custom-p-name").value = "";
+            document.getElementById("custom-p-lvl").value = "";
+            closeCustomPersonaModal();
+            renderCompendium();
+            showToast(`${name} added to custom compendium!`, "success");
+        }
+
+        function removeCustomPersona(pName) {
+            state.customPersonas = state.customPersonas.filter(cp => cp.name !== pName);
+            state.registeredPersonas = state.registeredPersonas.filter(n => n !== pName);
+            saveToStorage();
+            renderCompendium();
+            showToast(`${pName} removed from custom records.`, "info");
+        }
+
+        /* Notes Template Injections */
+        const NOTE_TEMPLATES = {
+            slink: `[ ] FOOL (S.E.E.S) - Auto Rank-up\n[ ] MAGICIAN (Kenji) - Rank:\n[ ] PRIESTESS (Fuuka) - Rank:\n[ ] EMPRESS (Mitsuru) - Rank:\n[ ] EMPEROR (Hidetoshi) - Rank:\n[ ] HIEROPHANT (Old Couple) - Rank:\n[ ] LOVERS (Yukari) - Rank:\n[ ] CHARIOT (Kazushi) - Rank:\n[ ] JUSTICE (Chihiro) - Rank:\n[ ] HERMIT (Maya) - Rank:\n[ ] FORTUNE (Keisuke) - Rank:\n[ ] STRENGTH (Yuko) - Rank:\n[ ] HANGED MAN (Maiko) - Rank:\n[ ] DEATH (Pharos) - Auto Rank-up\n[ ] TEMPERANCE (Bebe) - Rank:\n[ ] DEVIL (Tanaka) - Rank:\n[ ] TOWER (Mutatsu) - Rank:\n[ ] STAR (Mamoru) - Rank:\n[ ] MOON (Nozomi) - Rank:\n[ ] SUN (Akinari) - Rank:\n[ ] JUDGEMENT (Nyx Annihilation) - Auto`,
+            party: `* MAIN ADVENTURE SQUAD *\n- Leader (Protagonist) / Wildcard / Orpheus\n- Yukari Takeba / Priestess / Healer & Wind DPS\n- Akihiko Sanada / Emperor / Debuffer & Lightning\n- Mitsuru Kirijo / Empress / Ice Nuker & Ailments\n\n* ALTERNATIVE RESERVE TEAMS *\n- Junpei Iori / Physical Tank & Fire\n- Aigis / Buff Specialist & Heavy Physical\n- Ken Amada / Light Pierce & Support\n- Koromaru / Dark Slash & Fire Agi`,
+            quests: `* VELVET ROOM KEY REQUESTS *\n[ ] Req 1: Retrieve 1 Beetle Shell\n[ ] Req 2: Retrieve the first old document\n[ ] Req 3: Pine Resin for Elizabeth\n[ ] Req 4: Hand over three Jack Frost Dolls\n[ ] Req 5: Create a Jack Frost with Dia\n[ ] Req 6: Hand over a triangular sword`
+        };
+
+        function injectTemplate(key) {
+            const textarea = document.getElementById("notes-textarea");
+            const separator = textarea.value.trim() ? "\n\n=================================\n\n" : "";
+            textarea.value = textarea.value + separator + NOTE_TEMPLATES[key];
+            onNotesChanged();
+            showToast("Template checklist appended to your notes!", "success");
+        }
+
+        /* Generic Helper Utilities */
+        function switchTab(tabId) {
+            state.currentTab = tabId;
+            saveToStorage();
+            
+            // Update panel contents
+            document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
+            document.getElementById(`tab-${tabId}`).classList.remove("hidden");
+
+            // Update tab trigger styles
+            const tabs = ["classroom", "compendium", "notes"];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`btn-tab-${t}`);
+                if (t === tabId) {
+                    btn.className = "flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-cyan-400 bg-[#101d33] border border-cyan-500/20 shadow-inner";
+                } else {
+                    btn.className = "flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-slate-200";
+                }
+            });
+        }
+
+        // Custom Toast Indicator (Low Performance-friendly custom notification fallback)
+        function showToast(msg, type = "success") {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            
+            let colorClasses = "bg-[#0b172a] border-emerald-900 text-emerald-400";
+            let icon = '<i class="fa-solid fa-circle-check"></i>';
+            
+            if (type === "info") {
+                colorClasses = "bg-[#0b172a] border-cyan-900 text-cyan-400";
+                icon = '<i class="fa-solid fa-circle-info"></i>';
+            } else if (type === "warning") {
+                colorClasses = "bg-[#0b172a] border-amber-900 text-amber-400";
+                icon = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            }
+            
+            toast.className = `p-3.5 rounded-xl border flex items-center gap-2.5 shadow-lg max-w-sm pointer-events-auto transition-all duration-300 transform translate-y-5 opacity-0 text-xs font-semibold ${colorClasses}`;
+            toast.innerHTML = `${icon} <span>${msg}</span>`;
+            
+            container.appendChild(toast);
+            
+            // Animation tick
+            setTimeout(() => {
+                toast.classList.remove("translate-y-5", "opacity-0");
+            }, 10);
+
+            // Timeout to remove
+            setTimeout(() => {
+                toast.classList.add("translate-y-2", "opacity-0");
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // Trigger startup
+        window.onload = function() {
+            initApp();
+            checkTodayQuiz();
+        };
+    </script>
+</body>
+</html>
